@@ -5,6 +5,3 @@
 [submodule "floyd/third/pink"]
 	path = floyd/third/pink
 	url = https://github.com/Qihoo360/pink.git
-[submodule "floyd/third/rocksdb"]
-	path = floyd/third/rocksdb
-	url = https://github.com/facebook/rocksdb.git

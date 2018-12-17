@@ -1,58 +1,55 @@
-# Floyd [中文](https://github.com/Qihoo360/floyd/blob/master/README_CN.md)
+# Floyd 中文
 
-[![Build Status](https://travis-ci.org/Qihoo360/floyd.svg?branch=master)](https://travis-ci.org/Qihoo360/floyd)
+Floyd是一个C++实现的Raft一致性协议库。 
 
-Floyd is an C++ library based on Raft consensus protocol. 
+* [Raft](https://raft.github.io/)是一个相对于Paxos更容易理解和工程实现的一致性算法;
+* Floyd是一个一致性**库**，可以很容易引入到各种项目; 
+* Floyd支持集群节点之间的一致性操作，例如：Read/Write/Delete; 
+* 同时也支持非一致性的本地数据访问接口: DirtyRead/DirtyWrite;
+* 以及查询、管理接口：GetLeader/GetServerStatus/set_log_level
 
-* [Raft](https://raft.github.io/) is a consensus algorithm  which is easy to understand;
-* Floyd is a **library** that could be easily embeded into users' application; 
-* Floyd support consistency between cluster nodes by APIs like Read/Write/Delete; 
-* Also some query and debug managment APIs： GetLeader/GetServerStatus/set_log_level
-* Floyd support lock operation upon raft consensus protocol
+## 用户
 
-## Users
+* Floyd 目前应用在[Zeppelin](https://github.com/Qihoo360/zeppelin)中，为其Meta集群提供一致性的存储；Zeppeli是一个大容量的分布式key-value存储；
+* 陆续会有新的项目在使用；
 
-* Floyd has provided high available store for Meta cluster of [Zeppelin](https://github.com/Qihoo360/zeppelin) , which is a huge distributed key-value storage.
-* Floyd lock interface has used in our production pika_hub
-* The list will goes on.
+## 我们为什么倾向于库，而不是一个服务?
 
-## Why do we prefer a library to a service?
+当我们在有服务发现、协调和管理的需求时，ZooKeeper是一个很好的选择，但是有一定成本. 
+* 我们必须维护一套新的ZooKeeper的服务；
+* 我们也必须使用其SDK，去和ZooKeeper服务交互； 
 
-When we want to coordinate services, ZooKeeper is always a good choice. 
-* But we have to maintain another service.
-* We must use its' SDK at the same time. 
-
-In our opion, a single service is much more simple than two services. As a result, an embeded library could be a better choice.   
+我们认为，一个集成、单一的服务通常会比多个服务更加可控、简单. 所以，作为一个库来使用，能够简化整体的架构.  
 
 
-## Floyd's Features and APIs
+## Floyd功能和API
 
-* APIs and [usage](https://github.com/Qihoo360/floyd/wiki/API%E4%BB%8B%E7%BB%8D%E4%B8%8E%E4%BD%BF%E7%94%A8)
+* API和[具体使用](https://github.com/Qihoo360/floyd/wiki/API%E4%BB%8B%E7%BB%8D%E4%B8%8E%E4%BD%BF%E7%94%A8)
 
-| type      | API             | Status  |
-| --------- | --------------- | ------- |
-| Consensus | Read            | support |
-| Consensus | Write           | support |
-| Consensus | Delete          | support |
-| Local     | DirtyRead       | support |
-| Local     | DirtyWrite      | support |
-| Query     | GetLeader       | support |
-| Query     | GetServerStatus | support |
-| Debug     | set_log_level   | support |
+| type  | API             | Status |
+| ----- | --------------- | ------ |
+| 一致性接口 | Read            | 支持     |
+| 一致性接口 | Write           | 支持     |
+| 一致性接口 | Delete          | 支持     |
+| 本地接口  | DirtyRead       | 支持     |
+| 本地接口  | DirtyWrite      | 支持     |
+| 查询    | GetLeader       | 支持     |
+| 查询    | GetServerStatus | 支持     |
+| 调试    | set_log_level   | 支持     |
 
-* Raft fetaures
+* Raft的功能特性
 
 | Language | Leader election + Log Replication | Membership Changes | Log Compaction |
 | -------- | --------------------------------- | ------------------ | -------------- |
 | C++      | Yes                               | No                 | No             |
 
 
-## Compile and Have a Try
+## 编译运行
 
-* Dependencies
-    - gcc version 4.8+ to support C++11.
+* 依赖
+    - gcc 版本4.8+，以支持C++11.
     - protobuf-devel
-    - snappy-devel
+    - snappy-devel  
     - bzip2-devel
     - zlib-devel
     - bzip2
@@ -61,45 +58,60 @@ In our opion, a single service is much more simple than two services. As a resul
         - [Slash](https://github.com/Qihoo360/slash)
 
 
-* Get source code and submodules recursively.
+* 1) 拉取代码及子模块依赖.
 ```powershell
 git clone --recursive https://github.com/Qihoo360/floyd.git
 ```
-* Compile and get the libfloyd.a library
-```
+* 2) 编译Floyd库, 并且获得静态库libfloyd.a
+```powershell
+apt-get install libprotobuf-dev
+apt-get install protobuf-compiler   # 提供protoc命令
+cd proto && ./pr.sh && cd ..
 make
 ```
 
-### Example
+### 示例
 
-Then right now there is three examples in the example directory, go and compile in the corresponding directory
+目前我们实现了3个使用floyd 的例子, 在example/ 目录下面, 可以直接去对应的目录进行编译使用
+
+下面三个实例需要的库
+```
+apt-get install libgflags-dev
+apt-get install libsnappy-dev
+apt-get install librocksdb-dev
+cd third/slash/slash && make && cd ../../../
+cd third/pink/pink && ./build.sh ../../slash/ && cd ../../..
+```
 
 ####  example/simple/
 
-contains many cases wrapped floyd into small example
+这个simple 示例主要包含好几个本机就能够运行的使用floyd 的例子.
+在这些例子里面, 都会在一个进程启动5个 floyd 对象, 然后会有对象的停止, 重新启动等等操作来观察floyd 的一致性
 
-Get all simple example will make command, then every example will start floyd with five node
-
+执行 make 就可以编译所以的示例.在 output/bin/ 目录下面
 ```
 make
 ```
 
-1. t is a single thread wirte tool to get performance
-2. t1 is multi thread program to get performance, in this case, all the writes is from the leader node
-3. t2 is an example test node join and leave
-4. t4 is an example used to see the message passing by each node in a stable situation
-5. t5 used to test single mode floyd, including starting a node and writing data
-6. t6 is the same as t1 except that all the writes is from the follower node
-7. t7 test write 3 node and then join the other 2 node case
+1. t 是标准的示例, 运行起来以后会启动5个节点, 然后会不断的写入数据, 并统计QPS 以及展示集群目前的状态信息
+2. t1 是一个多线程压测的示例, 在这例子里面, write 是直接写入到Leader node的, 在我们的机器上, 可以获得差不多2w 的性能
+3. t2 这个例子主要用来示范节点的加入和删除操作是否正常, 可以通过观看每一个节点的LOG 信息来看raft 协议的过程
+4. t4 是节点起来以后就不做任何操作的稳定的raft 集群, 通常用来查看raft 协议中传输的消息, 可以通过看每一个节点的LOG 信息来看一个稳定运行的raft 集群的日志信息. t4 也经常用来配合tools 下面的cl 来生成不同的raft log 来验证raft 的log 不一致的情况下, 如何进行log replication
+5. t5 是用来示例单节点的floyd 运行以及写入数据
+6. t6 是和t1 一样是一个多线程压测的示例, 但是写入是从客户端写入, 因此性能会比t1 要来的差, 在我们的机器上, 差不多可以是5500 的性能
+7. t7 同样用来测试节点的加入和退出, 但是会在节点退出以后继续写入数据, 验证3个节点存活, 然后又有2个节点加入的过程
 
 #### example/redis/
 
-raftis is a consensus server with 5 nodes and supporting redis protocol(get/set command). raftis is an example of building a consensus cluster with floyd(floyd is a simple implementation of raft protocol). It's very simple and intuitive. we can test raftis with redis-cli, benchmark with redis redis-benchmark tools. 
+raftis 是一个5个节点的floyd server. raftis 支持redis 协议里面的get, set 命令. 
+raftis 是一个使用floyd 构建一致性集群的示例, 一般使用floyd 我们都推荐这么用, 非常的简单. raftis 可以直接使用 reids-cli, redis-benchmark 进行压测
 
-compile raftis with command make and then start with run.sh
+
+使用make 编译 raftis, 然后运行run.sh 可以启动5个节点.  当然这里运行的5个节点都在本地, 你完全可以在5个不同的机器运行这5个节点
 
 ```
-make && sh run.sh
+make
+sh run.sh
 ```
 
 ```
@@ -150,18 +162,14 @@ make && sh run.sh
 ```
 #### example/kv/
 
-A simple consensus kv example contain server and client builded with floyd
+一个使用floyd 实现强一致协议的server, 包含server, client
 
-## Test
-floyd has pass the jepsen test, you can get the test case here
-[jepsen](https://github.com/gaodq/jepsen)
 
-## Documents
+
+## 文档
 * [Wikis](https://github.com/Qihoo360/floyd/wiki)
 
-## Contant us
-
-Anyone who is interested in raft protocol, used floyd in your production or has wrote some article about souce code of floyd please contact me, we have a article list.
+## 联系我们
 
 * email: g-infra-bada@360.cn
 * QQ Group: 294254078
