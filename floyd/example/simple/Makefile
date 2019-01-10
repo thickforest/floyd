@@ -33,7 +33,8 @@ CXXFLAGS+=-I../../.. \
 					-I$(PINK_INCLUDE_DIR) \
 					-I$(ROCKSDB_INCLUDE_DIR)
 
-OBJECT = t t1 t2 t3 t4 t5 t6 t7 t8 test_lock test_lock1 test_lock2 add_server add_server1 remove_server read_bench
+#OBJECT = t t1 t2 t3 t4 t5 t6 t7 t8 test_lock test_lock1 test_lock2 add_server add_server1 remove_server read_bench node cluster
+OBJECT = cluster
 SRC_DIR = ./
 THIRD_PATH = ../../third
 OUTPUT = ./output
@@ -77,6 +78,12 @@ all: $(OBJECT)
 	cp $(OBJECT) $(OUTPUT)/bin/
 	rm -rf $(OBJECT)
 	@echo "Success, go, go, go..."
+
+node: node.o
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(INCLUDE_PATH) $(LIB_PATH) $(LIBS)
+
+cluster: cluster.o
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(INCLUDE_PATH) $(LIB_PATH) $(LIBS) -lhiredis -luv
 
 t: t.o
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(INCLUDE_PATH) $(LIB_PATH) $(LIBS)
